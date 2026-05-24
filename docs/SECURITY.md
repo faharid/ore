@@ -1,39 +1,62 @@
 # Security
 
-## Network isolation
+## Audit checklist
 
-- RDS runs in **private subnets** with no public accessibility.
-- ECS tasks have no public IPs; ingress only from the ALB security group.
-- Security groups follow least-privilege: ALB → ECS → RDS on required ports only.
+### Network
 
-## Encryption
+- [ ] RDS in private subnets (`publicly_accessible = false`)
+- [ ] ECS tasks have no public IP
+- [ ] SG chain: Internet → ALB (80/443) → ECS (app port) → RDS (5432)
+- [ ] Optional VPC flow logs (`enable_vpc_flow_logs = true`)
+- [ ] Optional Client VPN or SSM endpoints for admin access
 
-- RDS storage encryption enabled by default.
-- S3 state bucket uses SSE-S3 and versioning.
-- ECR images scanned on push; repository encryption enabled.
-- TLS on ALB when `domain_name` or `certificate_arn` is set (HTTP redirects to HTTPS).
+**Traffic flow:**
 
-## Secrets
+```
+Internet → ALB (public subnets) → ECS (private) → RDS (private)
+Secrets Manager ← ECS task execution role (API)
+```
 
-- Database password and JWT secret stored in **AWS Secrets Manager** (auto-generated if not provided).
-- Do not commit `terraform.tfvars` with secrets; use CI/CD secret stores.
-- Optional **Vault** paths documented in `modules/secrets/vault-integration.tf`.
+### Encryption
 
-## IAM
+| Data | At rest | In transit |
+|------|---------|------------|
+| RDS | AES-256 (storage_encrypted) | TLS optional app-side |
+| ECR images | AES-256 | TLS (HTTPS) |
+| Secrets Manager | AWS KMS default | TLS |
+| Terraform state (S3) | SSE-S3 | TLS-only bucket policy |
+| ALB ↔ client | — | TLS when ACM cert configured |
 
-- **Task execution role**: pull images, write logs, read configured secrets.
-- **Task role**: SSM messages for ECS Exec / Session Manager patterns.
-- **Deployment role**: ECR push and ECS service updates for CI/CD (scope to your account).
+### Access (IAM)
 
-## Private access
+- [ ] ECS task execution role: minimal ECR + logs + secrets read
+- [ ] ECS task role: SSM for Exec only
+- [ ] Deployment role: OIDC trust (no account-root in prod)
+- [ ] No long-lived keys in CI after OIDC setup ([CI-OIDC.md](CI-OIDC.md))
 
-- **SSM VPC endpoints** (default on): Session Manager without a bastion host.
-- **Client VPN** (optional): set `enable_client_vpn` and `client_vpn_certificate_arn`.
+### Compliance & logging
 
-## Operational checklist
+- [ ] CloudTrail enabled at **AWS account** level (not in this module)
+- [ ] Secrets Manager CloudTrail data events for secret access
+- [ ] CloudWatch log retention set (30 days default on ECS logs)
+- [ ] SNS alarm on 5xx and RDS storage
 
-- [ ] Confirm SNS alarm email subscription
-- [ ] Enable CloudTrail at account level (not in this module)
-- [ ] Restrict deployment role trust to CI OIDC provider
-- [ ] Rotate Secrets Manager values on schedule
-- [ ] Set `rds_deletion_protection = true` in production
+### Known gaps (honest)
+
+| Gap | Mitigation |
+|-----|------------|
+| No WAF on ALB/CloudFront | Add `aws_wafv2_web_acl` module extension |
+| No automatic secret rotation | Manual rotation runbook in DISASTER-RECOVERY.md |
+| Vault integration stub only | Use Secrets Manager; see `vault-integration.tf` |
+| RDS password in Terraform graph | Accept for v1 or migrate to RDS managed password |
+| Deployment role local assume (dev) | Disable `enable_local_assume_role` in prod |
+
+### Pre-production review
+
+1. Set `rds_deletion_protection = true`
+2. Set `enable_local_assume_role = false`; configure OIDC
+3. Confirm `alarm_email` SNS subscription
+4. Run `./scripts/health-check.sh` over HTTPS once cert validated
+5. Review `terraform plan` for public resources
+
+See also [DECISIONS.md](DECISIONS.md) and [COST-ANALYSIS.md](COST-ANALYSIS.md).

@@ -33,7 +33,11 @@ enable_ssm_endpoints = true
 enable_client_vpn    = false
 # client_vpn_certificate_arn = "arn:aws:acm:..."
 
-alarm_email = "ops@example.com"
+enable_local_assume_role = true
+
+# Production: configure OIDC instead
+# github_oidc_provider_arn = "arn:aws:iam::ACCOUNT:oidc-provider/token.actions.githubusercontent.com"
+# allowed_oidc_subjects = ["repo:faharid/ore:ref:refs/heads/main"]
 
 # datadog_api_key = ""
 # datadog_app_key = ""

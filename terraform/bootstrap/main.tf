@@ -12,6 +12,10 @@ provider "aws" {
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket = var.state_bucket_name
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state" {
@@ -46,8 +50,54 @@ resource "aws_dynamodb_table" "terraform_locks" {
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
+  server_side_encryption {
+    enabled = true
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
   attribute {
     name = "LockID"
     type = "S"
+  }
+}
+
+data "aws_iam_policy_document" "state_bucket_tls" {
+  statement {
+    sid    = "DenyInsecureTransport"
+    effect = "Deny"
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.terraform_state.arn, "${aws_s3_bucket.terraform_state.arn}/*"]
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+  policy = data.aws_iam_policy_document.state_bucket_tls.json
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  rule {
+    id     = "expire-old-versions"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
   }
 }

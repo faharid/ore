@@ -6,6 +6,23 @@
 - Terraform >= 1.5
 - Permissions to create VPC, ECS, RDS, ALB, IAM, Secrets Manager, etc.
 
+## State per environment (important)
+
+Each environment **must** use its own state key. Never apply `dev.tfvars` and `prod.tfvars` against the same backend key.
+
+| Environment | State key example |
+|-------------|-------------------|
+| dev | `ore/dev/terraform.tfstate` |
+| staging | `ore/staging/terraform.tfstate` |
+| prod | `ore/prod/terraform.tfstate` |
+
+```bash
+./scripts/init.sh dev      # writes backend.hcl with ore/dev/...
+./scripts/init.sh prod     # re-init with ore/prod/...
+```
+
+Alternative: [Terraform Cloud workspaces](TERRAFORM-CLOUD.md) or Terraform CLI workspaces.
+
 ## Step 0: Bootstrap remote state
 
 ```bash
@@ -27,8 +44,7 @@ cp backend.hcl.example backend.hcl
 ## Step 2: Initialize and plan
 
 ```bash
-./scripts/init.sh
-cp terraform.tfvars.example terraform.tfvars   # optional overrides
+./scripts/init.sh dev
 terraform plan -var-file=environments/dev.tfvars
 ```
 
@@ -36,22 +52,13 @@ terraform plan -var-file=environments/dev.tfvars
 
 ```bash
 ./scripts/deploy.sh dev
-# or: terraform apply -var-file=environments/dev.tfvars
 ```
 
 RDS creation typically takes **5–15 minutes**.
 
-## Step 4: Push application image
+## Step 4: Deploy application
 
-After ECR is created:
-
-```bash
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ACCOUNT.dkr.ecr.us-east-1.amazonaws.com
-docker build -t ore-dev-app .
-docker tag ore-dev-app:latest ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/ore-dev-app:latest
-docker push ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/ore-dev-app:latest
-aws ecs update-service --cluster ore-dev-cluster --service ore-dev-service --force-new-deployment
-```
+See [FIRST-DEPLOYMENT.md](FIRST-DEPLOYMENT.md) for build/push to ECR and ECS rollout.
 
 ## Step 5: Verify
 
@@ -62,15 +69,17 @@ terraform output application_url
 
 ## CI/CD
 
-- GitLab: copy `terraform/ci-cd/gitlab-ci.yml` to repository root or include it.
-- GitHub Actions: copy `terraform/ci-cd/github-actions/deploy.yml` to `.github/workflows/`.
+Active pipelines at repo root:
 
-Set secrets: `AWS_DEPLOY_ROLE_ARN`, `ECR_REGISTRY`, `ECS_CLUSTER`, `ECS_SERVICE`.
+- [`.github/workflows/terraform.yml`](../.github/workflows/terraform.yml)
+- [`.gitlab-ci.yml`](../.gitlab-ci.yml)
+
+Configure OIDC: [CI-OIDC.md](CI-OIDC.md). Set `AWS_DEPLOY_ROLE_ARN`, `ECS_CLUSTER`, `ECS_SERVICE`, `ECR_REGISTRY`.
 
 ## Environments
 
 | File | Use case |
 |------|----------|
-| `environments/dev.tfvars` | Low cost, single NAT, micro RDS |
+| `environments/dev.tfvars` | Low cost, single NAT, micro RDS, local IAM assume |
 | `environments/staging.tfvars` | Pre-production parity |
-| `environments/prod.tfvars` | Multi-AZ, CloudFront, stricter RDS |
+| `environments/prod.tfvars` | Multi-AZ, stricter RDS; configure OIDC before apply |

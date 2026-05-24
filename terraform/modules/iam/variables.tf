@@ -33,7 +33,39 @@ variable "ecs_cluster_arn" {
 }
 
 variable "ecs_service_arn" {
-  description = "ECS service ARN for deployment role"
+  description = "ECS service ARN for deployment role (informational)"
   type        = string
   default     = ""
+}
+
+variable "github_oidc_provider_arn" {
+  type    = string
+  default = ""
+}
+
+variable "gitlab_oidc_provider_arn" {
+  type    = string
+  default = ""
+}
+
+variable "github_oidc_audience" {
+  type    = string
+  default = "sts.amazonaws.com"
+}
+
+variable "gitlab_oidc_audience" {
+  type    = string
+  default = "https://gitlab.com"
+}
+
+variable "allowed_oidc_subjects" {
+  description = "Allowed OIDC subject patterns (repo:org/repo:ref:refs/heads/main)"
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_local_assume_role" {
+  description = "Allow MFA-protected local assume role (dev only)"
+  type        = bool
+  default     = false
 }

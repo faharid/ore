@@ -1,0 +1,66 @@
+name: Terraform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  TF_ROOT: terraform
+  AWS_REGION: us-east-1
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+      - run: terraform init -backend=false
+      - run: terraform fmt -check -recursive
+      - run: terraform validate
+      - run: bash ../tests/terraform_validate.sh
+
+  plan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+      - run: terraform init -backend=false
+      - run: terraform plan -var-file=environments/dev.tfvars -no-color
+
+  build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [validate]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - run: bash terraform/ci-cd/scripts/build.sh
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - run: bash terraform/ci-cd/scripts/deploy.sh

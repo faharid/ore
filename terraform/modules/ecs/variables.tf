@@ -22,10 +22,6 @@ variable "target_group_arn" {
   type = string
 }
 
-variable "listener_arn" {
-  type = string
-}
-
 variable "task_execution_role_arn" {
   type = string
 }
@@ -104,6 +100,11 @@ variable "log_group_name" {
 }
 
 variable "create_ecr_repository" {
+  type    = bool
+  default = true
+}
+
+variable "enable_ecs_exec" {
   type    = bool
   default = true
 }

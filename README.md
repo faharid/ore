@@ -1,18 +1,58 @@
 # ore
 
-> Production AWS infrastructure for SaaS scale. Modular Terraform, CI/CD pipelines, observability, security-first. Built from fintech-grade best practices.
+> Production AWS infrastructure for SaaS — modular Terraform, CI/CD, observability, security-first.
 
-## Overview
+## Why ore?
 
-Stop reinventing AWS infrastructure. Production patterns for SaaS:
+Building AWS infrastructure from scratch for every SaaS product wastes weeks and repeats the same mistakes: public RDS endpoints, secrets in git, single-AZ databases, and CI pipelines with long-lived AWS keys.
+
+**ore** is an opinionated, modular Terraform stack that encodes fintech-grade defaults: private networking, ECS Fargate, RDS Multi-AZ (in prod), Secrets Manager, and OIDC-ready CI/CD.
+
+```mermaid
+flowchart LR
+  subgraph before [WithoutTemplate]
+    AdHoc[AdHocTerraform]
+    Leaks[SecretsInGit]
+    Downtime[ManualFailover]
+  end
+  subgraph after [WithOre]
+    Modules[ReusableModules]
+    SM[SecretsManager]
+    MultiAZ[RDSMultiAZ]
+    OIDC[OIDCDeployRole]
+  end
+  before --> after
+```
+
+**Key decisions:** [docs/DECISIONS.md](docs/DECISIONS.md) · **Problems solved:** [docs/PROBLEMS.md](docs/PROBLEMS.md)
+
+## Capabilities vs roadmap
+
+| Capability | Status |
+|------------|--------|
+| VPC, NAT, security groups | Implemented |
+| ECS Fargate + auto-scaling | Implemented |
+| RDS PostgreSQL + backups | Implemented |
+| ALB + optional CloudFront | Implemented |
+| Secrets Manager | Implemented |
+| CloudWatch alarms + SNS | Implemented |
+| OIDC CI deploy role | Implemented ([CI-OIDC.md](docs/CI-OIDC.md)) |
+| Rolling ECS deploys | Implemented |
+| Datadog forwarder hook | Optional (Lambda ARN) |
+| Vault sync | Stub / documented only |
+| CodeDeploy blue-green | Roadmap (rolling today) |
+| WAF / Prometheus | Roadmap |
+
+## What's included
+
 - **Networking:** VPC with public/private subnets, NAT, security groups
-- **Compute:** ECS Fargate (containerized apps, no server management)
-- **Database:** RDS PostgreSQL with automated backups, Multi-AZ
-- **Load Balancing:** ALB with auto-scaling
-- **Secrets:** AWS Secrets Manager + Vault integration
-- **Monitoring:** CloudWatch logs, Prometheus, Datadog hooks
-- **CI/CD:** GitLab CI templates (works with GitHub Actions too)
-- **Security:** Encryption at rest/transit, VPN, least privilege IAM
+- **Compute:** ECS Fargate (containerized apps, auto-scaling)
+- **Database:** RDS PostgreSQL with automated backups, Multi-AZ (prod)
+- **Load balancing:** ALB with HTTPS when ACM cert is configured
+- **Secrets:** AWS Secrets Manager (Vault paths documented as optional)
+- **Monitoring:** CloudWatch logs and alarms; optional Datadog log subscription
+- **CI/CD:** GitHub Actions + GitLab CI at repo root
+- **Security:** Encryption, private RDS, least-privilege IAM, SSM endpoints
 
 ## Quick Start
 
@@ -25,20 +65,19 @@ cd ore/
 cd terraform/bootstrap
 terraform init && terraform apply -var="state_bucket_name=YOUR_UNIQUE_BUCKET"
 
-# 1. Configure backend + init
-cd ..
+# 1. Configure backend + init (per environment)
 cp backend.hcl.example backend.hcl   # edit bucket/table from bootstrap
-./scripts/init.sh
+./scripts/init.sh dev
 
 # 2. Plan & apply
-terraform plan -var-file="environments/prod.tfvars"
-terraform apply -var-file="environments/prod.tfvars"
+terraform plan -var-file="environments/dev.tfvars"
+terraform apply -var-file="environments/dev.tfvars"
 
 # 3. Outputs (ALB DNS, RDS endpoint, etc.)
 terraform output
 ```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full walkthrough.
+See [docs/FIRST-DEPLOYMENT.md](docs/FIRST-DEPLOYMENT.md) for app deploy walkthrough and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for infrastructure details.
 
 ## Architecture
 
@@ -74,10 +113,10 @@ Secrets:
   API keys → AWS Secrets Manager → Injected to containers
 
 Monitoring:
-  Containers → CloudWatch Logs → Datadog/Prometheus
+  Containers → CloudWatch Logs → optional Datadog forwarder
 
 CI/CD:
-  Git push → GitLab CI → Test → Build → Deploy to ECS
+  Git push → GitHub Actions / GitLab CI → validate → build → deploy to ECS
 ```
 
 ## Directory Structure
@@ -492,21 +531,32 @@ Infrastructure code lives under `terraform/` with reusable modules, environment 
 2. **Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** (understand what you're deploying)
 3. **Bootstrap S3 state** (`terraform/bootstrap`)
 4. **Copy `terraform.tfvars.example` → `terraform.tfvars`** (optional)
-5. **`./scripts/init.sh` && `terraform plan -var-file=environments/dev.tfvars`**
+5. **`./scripts/init.sh dev`** && **`terraform plan -var-file=environments/dev.tfvars`**
 6. **`terraform apply`** (review plan first!)
-7. **Connect CI/CD** (`terraform/ci-cd/`)
+7. **Deploy sample app:** [docs/FIRST-DEPLOYMENT.md](docs/FIRST-DEPLOYMENT.md)
+8. **Configure CI/OIDC:** [docs/CI-OIDC.md](docs/CI-OIDC.md)
+
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components and data flow |
+| [DECISIONS.md](docs/DECISIONS.md) | Architecture decision records |
+| [FIRST-DEPLOYMENT.md](docs/FIRST-DEPLOYMENT.md) | End-to-end app deploy |
+| [COST-ANALYSIS.md](docs/COST-ANALYSIS.md) | Dev/staging/prod cost estimates |
+| [SECURITY.md](docs/SECURITY.md) | Security audit checklist |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to extend ore |
 
 ## Troubleshooting
 
-- **terraform init fails:** Check AWS credentials (`aws configure`)
-- **terraform apply hangs:** Likely waiting for RDS creation (5-10 min normal)
-- **ECS tasks keep failing:** Check CloudWatch logs (`/ecs/saas-service`)
-- **Database connection errors:** Verify security groups allow ECS → RDS
+See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+## Author
+
+**Faharid Manjarrez** — [github.com/faharid/ore](https://github.com/faharid/ore)
+
+Topics: `terraform`, `aws`, `saas`, `infrastructure-as-code`, `devops`
 
 ## License
 
-MIT
-
----
-
-**Infrastructure that scales. Security-first. Battle-tested by fintech startups.**
+MIT — see [LICENSE](LICENSE)

@@ -53,3 +53,8 @@ variable "enable_vpn_sg" {
   type        = bool
   default     = false
 }
+
+variable "enable_flow_logs" {
+  type    = bool
+  default = false
+}

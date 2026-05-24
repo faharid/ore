@@ -1,0 +1,79 @@
+stages:
+  - validate
+  - test
+  - plan
+  - build
+  - deploy
+
+variables:
+  TF_ROOT: terraform
+  AWS_DEFAULT_REGION: us-east-1
+
+.terraform_base:
+  image:
+    name: hashicorp/terraform:1.7
+    entrypoint: [""]
+  before_script:
+    - cd "${CI_PROJECT_DIR}/${TF_ROOT}"
+    - terraform --version
+
+validate:
+  extends: .terraform_base
+  stage: validate
+  script:
+    - terraform init -backend=false
+    - terraform fmt -check -recursive
+    - terraform validate
+    - |
+      if command -v tflint >/dev/null 2>&1; then
+        tflint --recursive || true
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+test:
+  stage: test
+  image: alpine:3.19
+  script:
+    - sh tests/terraform_validate.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+plan:
+  extends: .terraform_base
+  stage: plan
+  script:
+    - terraform init -backend=false
+    - terraform plan -var-file=environments/dev.tfvars -out=tfplan
+  artifacts:
+    paths:
+      - terraform/tfplan
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - sh terraform/ci-cd/scripts/build.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+deploy:
+  stage: deploy
+  image: amazon/aws-cli:2.15.0
+  script:
+    - sh terraform/ci-cd/scripts/deploy.sh
+  environment:
+    name: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs:
+    - build

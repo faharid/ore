@@ -19,6 +19,8 @@ resource "aws_ecs_service" "main" {
 
   health_check_grace_period_seconds = var.health_check_grace_period
 
+  enable_execute_command = var.enable_ecs_exec
+
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
 

@@ -10,8 +10,12 @@ IMAGE_TAG="${IMAGE_TAG:-${CI_COMMIT_SHA:-latest}}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile}"
 
 if [[ ! -f "${DOCKERFILE}" ]]; then
-  echo "No ${DOCKERFILE} in repo root — skipping image build (infrastructure-only repo)."
-  exit 0
+  if [[ -f "Dockerfile" ]]; then
+    DOCKERFILE="Dockerfile"
+  else
+    echo "No Dockerfile found — skipping image build."
+    exit 0
+  fi
 fi
 
 aws ecr get-login-password --region "${AWS_DEFAULT_REGION:-us-east-1}" \

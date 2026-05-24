@@ -1,43 +1,99 @@
 # Disaster Recovery
 
-## RDS backups
+Step-by-step recovery procedures with expected timing.
 
-Configured in `modules/rds`:
+## RDS Multi-AZ failover
 
-- Automated backups with `backup_retention_period` (7 dev / 30 prod by default).
-- Backup window: `03:00-04:00` UTC (configurable).
-- `copy_tags_to_snapshot = true` for snapshot organization.
-- Final snapshot on destroy unless `skip_final_snapshot = true` (dev only).
+**Scenario:** Primary AZ failure.
 
-## Recovery procedures
+**Expected RTO:** 60–120 seconds (AWS-managed).
 
-### Restore from snapshot
+**Steps:**
 
-1. Identify snapshot in AWS Console or CLI:
-   ```bash
-   aws rds describe-db-snapshots --db-instance-id ore-prod-postgres
-   ```
-2. Restore to a new instance (Console: **Restore snapshot**).
-3. Update Secrets Manager password if a new master user/password is used.
-4. Update ECS task environment / secrets and redeploy.
+1. CloudWatch alarm `ore-prod-rds-*` may fire.
+2. Verify in RDS Console → instance status `available`, AZ changed.
+3. ECS tasks reconnect automatically (same endpoint hostname).
+4. No Terraform action required.
 
-### Regional failure
+**Validate (non-prod drill):** Reboot RDS with failover option in Console.
 
-This stack is **single-region**. For DR across regions:
+---
 
-- Replicate RDS snapshots to a secondary region (AWS Backup or manual copy).
-- Maintain Terraform state per region.
-- Document DNS failover (Route 53) to a standby ALB/ECS stack.
+## Point-in-time recovery (PITR)
 
-## RTO / RPO targets (guidance)
+**Scenario:** Bad migration deleted data; need restore to 2 hours ago.
 
-| Tier | RPO | RTO |
-|------|-----|-----|
-| Dev | 24h | Best effort |
-| Prod | 1h (backup frequency) | 1–4h (runbook + restore) |
+**Prerequisites:** `backup_retention_period > 0` (7 dev / 30 prod).
 
-Adjust backup retention and Multi-AZ to match your compliance requirements.
+**Steps:**
 
-## State recovery
+1. Note target time (UTC): e.g. `2026-05-23T14:00:00Z`
+2. RDS Console → **Restore to point in time** → new instance identifier `ore-prod-postgres-restored`
+3. Update Secrets Manager password if new master credentials generated
+4. Update ECS task env / apply Terraform to point `DATABASE_HOST` at restored endpoint
+5. `aws ecs update-service --force-new-deployment`
 
-Terraform state lives in S3 with versioning enabled (bootstrap module). To recover a corrupted state file, restore a previous object version from S3.
+**Expected RTO:** 20–40 minutes depending on storage size.
+
+```bash
+aws rds describe-db-snapshots --db-instance-id ore-prod-postgres
+```
+
+---
+
+## ECS cluster at capacity
+
+**Scenario:** Traffic spike; CPU alarm fires.
+
+**Automatic:** Auto-scaling adds tasks (target tracking 70% CPU).
+
+**Manual override:**
+
+```bash
+aws ecs update-service --cluster CLUSTER --service SERVICE --desired-count 5
+```
+
+Note: Terraform ignores `desired_count` changes on service (`lifecycle ignore_changes`).
+
+---
+
+## Compromised secret rotation
+
+**Scenario:** JWT secret leaked.
+
+**Steps:**
+
+1. Generate new secret in Secrets Manager Console or update via Terraform `jwt_secret`
+2. `terraform apply -var-file=environments/prod.tfvars`
+3. Force ECS deployment to pick up new secret version:
+
+```bash
+aws ecs update-service --cluster CLUSTER --service SERVICE --force-new-deployment
+```
+
+**Expected downtime:** None if rolling deploy succeeds.
+
+---
+
+## Terraform state corruption
+
+**Scenario:** Bad merge corrupted `terraform.tfstate`.
+
+**Steps:**
+
+1. S3 Console → state bucket → **Versions** → restore previous version
+2. `terraform plan` to reconcile drift
+
+Bootstrap bucket has versioning enabled ([`terraform/bootstrap/main.tf`](../terraform/bootstrap/main.tf)).
+
+---
+
+## Regional disaster
+
+This stack is **single-region**. For region loss:
+
+1. Restore latest RDS snapshot to secondary region
+2. Apply Terraform in secondary region with separate state key (`ore/prod/eu-west-1/terraform.tfstate`)
+3. Update DNS (Route 53) to new ALB/CloudFront
+
+See [examples/multi-region](../examples/multi-region/README.md).

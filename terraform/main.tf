@@ -22,6 +22,7 @@ module "vpc" {
   single_nat_gateway   = var.single_nat_gateway
   container_port       = var.container_port
   enable_vpn_sg        = var.enable_client_vpn
+  enable_flow_logs     = var.enable_vpc_flow_logs
 }
 
 module "secrets" {
@@ -40,12 +41,16 @@ module "secrets" {
 module "iam" {
   source = "./modules/iam"
 
-  project_name        = var.project_name
-  environment         = var.environment
-  aws_region          = var.aws_region
-  aws_account_id      = local.account_id
-  secrets_arns        = module.secrets.all_secret_arns
-  ecr_repository_arns = var.create_ecr_repository ? [local.ecr_repository_arn] : []
+  project_name             = var.project_name
+  environment              = var.environment
+  aws_region               = var.aws_region
+  aws_account_id           = local.account_id
+  secrets_arns             = module.secrets.all_secret_arns
+  ecr_repository_arns      = var.create_ecr_repository ? [local.ecr_repository_arn] : []
+  github_oidc_provider_arn = var.github_oidc_provider_arn
+  gitlab_oidc_provider_arn = var.gitlab_oidc_provider_arn
+  allowed_oidc_subjects    = var.allowed_oidc_subjects
+  enable_local_assume_role = var.enable_local_assume_role
 }
 
 data "aws_secretsmanager_secret_version" "db_password" {
@@ -97,7 +102,6 @@ module "ecs" {
   private_subnet_ids           = module.vpc.private_subnet_ids
   security_group_ids           = [module.vpc.ecs_security_group_id]
   target_group_arn             = module.alb.target_group_arn
-  listener_arn                 = module.alb.http_listener_arn
   task_execution_role_arn      = module.iam.ecs_task_execution_role_arn
   task_role_arn                = module.iam.ecs_task_role_arn
   container_image              = local.default_container_image
@@ -114,6 +118,7 @@ module "ecs" {
   environment_variables        = var.environment_variables
   health_check_path            = var.health_check_path
   create_ecr_repository        = var.create_ecr_repository
+  enable_ecs_exec              = var.enable_ecs_exec
 }
 
 module "autoscaling" {
@@ -147,11 +152,12 @@ module "cloudfront" {
   count  = var.enable_cloudfront ? 1 : 0
   source = "./modules/cloudfront"
 
-  project_name        = var.project_name
-  environment         = var.environment
-  alb_dns_name        = module.alb.alb_dns_name
-  aliases             = var.cloudfront_aliases
-  acm_certificate_arn = var.cloudfront_acm_certificate_arn
+  project_name           = var.project_name
+  environment            = var.environment
+  alb_dns_name           = module.alb.alb_dns_name
+  aliases                = var.cloudfront_aliases
+  acm_certificate_arn    = var.cloudfront_acm_certificate_arn
+  origin_protocol_policy = module.alb.certificate_arn != "" ? "https-only" : "http-only"
 }
 
 module "ssm" {
@@ -176,4 +182,15 @@ module "client_vpn" {
   private_subnet_ids     = module.vpc.private_subnet_ids
   server_certificate_arn = var.client_vpn_certificate_arn
   security_group_ids     = compact([module.vpc.vpn_security_group_id])
+}
+
+module "budgets" {
+  count  = var.enable_budgets ? 1 : 0
+  source = "./modules/budgets"
+
+  project_name       = var.project_name
+  environment        = var.environment
+  limit_amount       = var.monthly_budget_limit
+  notification_email = var.alarm_email
+  sns_topic_arn      = module.monitoring.sns_topic_arn
 }

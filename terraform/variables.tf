@@ -7,6 +7,11 @@ variable "project_name" {
 variable "environment" {
   description = "Environment name (dev, staging, prod)"
   type        = string
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "environment must be dev, staging, or prod."
+  }
 }
 
 variable "aws_region" {
@@ -24,6 +29,11 @@ variable "aws_account_id" {
 variable "vpc_cidr" {
   type    = string
   default = "10.0.0.0/16"
+
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0))
+    error_message = "vpc_cidr must be a valid IPv4 CIDR block."
+  }
 }
 
 variable "public_subnet_cidrs" {
@@ -80,6 +90,11 @@ variable "ecs_min_capacity" {
 variable "ecs_max_capacity" {
   type    = number
   default = 10
+
+  validation {
+    condition     = var.ecs_max_capacity >= var.ecs_min_capacity
+    error_message = "ecs_max_capacity must be >= ecs_min_capacity."
+  }
 }
 
 variable "ecs_scale_up_threshold" {
@@ -183,17 +198,6 @@ variable "datadog_api_key" {
   default   = ""
 }
 
-variable "datadog_app_key" {
-  type      = string
-  sensitive = true
-  default   = ""
-}
-
-variable "datadog_api_url" {
-  type    = string
-  default = "https://api.datadoghq.com/"
-}
-
 variable "enable_datadog_forwarder" {
   type    = bool
   default = false
@@ -250,4 +254,48 @@ variable "cloudfront_aliases" {
 variable "cloudfront_acm_certificate_arn" {
   type    = string
   default = ""
+}
+
+variable "github_oidc_provider_arn" {
+  description = "IAM OIDC provider ARN for GitHub Actions"
+  type        = string
+  default     = ""
+}
+
+variable "gitlab_oidc_provider_arn" {
+  description = "IAM OIDC provider ARN for GitLab CI"
+  type        = string
+  default     = ""
+}
+
+variable "allowed_oidc_subjects" {
+  description = "OIDC subject patterns allowed to assume the deployment role"
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_local_assume_role" {
+  description = "Allow MFA-protected account assume for local deploys (dev only)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_budgets" {
+  type    = bool
+  default = false
+}
+
+variable "monthly_budget_limit" {
+  type    = string
+  default = "200"
+}
+
+variable "enable_vpc_flow_logs" {
+  type    = bool
+  default = false
+}
+
+variable "enable_ecs_exec" {
+  type    = bool
+  default = true
 }

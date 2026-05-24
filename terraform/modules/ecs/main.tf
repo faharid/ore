@@ -46,3 +46,26 @@ resource "aws_ecr_repository" "app" {
     Name = "${local.name_prefix}-app"
   }
 }
+
+resource "aws_ecr_lifecycle_policy" "app" {
+  count = var.create_ecr_repository ? 1 : 0
+
+  repository = aws_ecr_repository.app[0].name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 30 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 30
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}

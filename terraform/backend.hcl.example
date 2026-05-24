@@ -1,5 +1,13 @@
+# generated — copy to backend.hcl and set your values (backend.hcl is gitignored)
+#
+# Use a separate state key per environment. Never apply dev and prod tfvars
+# against the same key.
+#
+# Example for dev:
+#   key = "ore/dev/terraform.tfstate"
+#
 bucket         = "your-unique-ore-terraform-state-bucket"
-key            = "ore/terraform.tfstate"
+key            = "ore/dev/terraform.tfstate"
 region         = "us-east-1"
 dynamodb_table = "ore-terraform-locks"
 encrypt        = true

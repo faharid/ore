@@ -1,17 +1,59 @@
 data "aws_iam_policy_document" "deployment_assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
+  dynamic "statement" {
+    for_each = var.github_oidc_provider_arn != "" ? [1] : []
+    content {
+      actions = ["sts:AssumeRoleWithWebIdentity"]
+      principals {
+        type        = "Federated"
+        identifiers = [var.github_oidc_provider_arn]
+      }
+      condition {
+        test     = "StringEquals"
+        variable = "token.actions.githubusercontent.com:aud"
+        values   = [var.github_oidc_audience]
+      }
+      condition {
+        test     = "StringLike"
+        variable = "token.actions.githubusercontent.com:sub"
+        values   = var.allowed_oidc_subjects
+      }
     }
   }
 
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.aws_account_id}:root"]
+  dynamic "statement" {
+    for_each = var.gitlab_oidc_provider_arn != "" ? [1] : []
+    content {
+      actions = ["sts:AssumeRoleWithWebIdentity"]
+      principals {
+        type        = "Federated"
+        identifiers = [var.gitlab_oidc_provider_arn]
+      }
+      condition {
+        test     = "StringEquals"
+        variable = "gitlab.com:aud"
+        values   = [var.gitlab_oidc_audience]
+      }
+      condition {
+        test     = "StringLike"
+        variable = "gitlab.com:sub"
+        values   = var.allowed_oidc_subjects
+      }
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.enable_local_assume_role ? [1] : []
+    content {
+      actions = ["sts:AssumeRole"]
+      principals {
+        type        = "AWS"
+        identifiers = ["arn:aws:iam::${var.aws_account_id}:root"]
+      }
+      condition {
+        test     = "Bool"
+        variable = "aws:MultiFactorAuthPresent"
+        values   = ["true"]
+      }
     }
   }
 }
@@ -52,7 +94,7 @@ resource "aws_iam_role_policy" "deployment" {
           Resource = var.ecr_repository_arns
         }
       ] : [],
-      var.ecs_service_arn != "" ? [
+      var.ecs_cluster_arn != "" ? [
         {
           Effect = "Allow"
           Action = [
@@ -61,9 +103,10 @@ resource "aws_iam_role_policy" "deployment" {
             "ecs:DescribeTaskDefinition",
             "ecs:RegisterTaskDefinition",
             "ecs:DescribeTasks",
-            "ecs:ListTasks"
+            "ecs:ListTasks",
+            "ecs:DescribeClusters"
           ]
-          Resource = compact([var.ecs_cluster_arn, var.ecs_service_arn, "*"])
+          Resource = "*"
         }
       ] : [],
       [

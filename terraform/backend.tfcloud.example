@@ -1,0 +1,9 @@
+# generated — Terraform Cloud backend (alternative to S3)
+# Replace backend "s3" block in backend.tf or use partial config:
+#
+# cloud {
+#   organization = "your-org"
+#   workspaces {
+#     name = "ore-dev"
+#   }
+# }

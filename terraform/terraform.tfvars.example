@@ -1,0 +1,46 @@
+# Copy to terraform.tfvars (gitignored) and customize.
+# Or use: terraform plan -var-file=environments/prod.tfvars
+
+project_name = "ore"
+environment  = "dev"
+aws_region   = "us-east-1"
+
+# Optional: override auto-detected account ID
+# aws_account_id = "123456789012"
+
+vpc_cidr             = "10.0.0.0/16"
+single_nat_gateway   = true
+
+container_image = "nginx:alpine"
+container_port  = 80
+health_check_path = "/"
+
+ecs_desired_count = 1
+ecs_min_capacity  = 1
+ecs_max_capacity  = 5
+
+rds_instance_class          = "db.t3.micro"
+rds_multi_az                = false
+rds_backup_retention_period = 7
+rds_deletion_protection     = false
+rds_skip_final_snapshot     = true
+
+domain_name   = ""
+enable_https  = true
+enable_cloudfront = false
+
+enable_ssm_endpoints = true
+enable_client_vpn    = false
+# client_vpn_certificate_arn = "arn:aws:acm:..."
+
+alarm_email = "ops@example.com"
+
+# datadog_api_key = ""
+# datadog_app_key = ""
+
+# database_password = ""  # leave empty to auto-generate
+# jwt_secret = ""
+
+additional_secrets = {
+  # "api-keys/stripe" = "sk_live_..."
+}

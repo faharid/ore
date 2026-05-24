@@ -1,0 +1,5 @@
+bucket         = "your-unique-ore-terraform-state-bucket"
+key            = "ore/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "ore-terraform-locks"
+encrypt        = true

@@ -1,6 +1,13 @@
+<div align="center">
+
 # ore
 
+<img width="150" height="150" alt="ore_icon_diamond" src="https://github.com/user-attachments/assets/7e8c4deb-0564-425a-91e5-d31a11b867b5" />
+
 > Production AWS infrastructure for SaaS — modular Terraform, CI/CD, observability, security-first.
+
+
+</div>
 
 ## Why ore?
 

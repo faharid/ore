@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ore-frontend
+  labels:
+    app: ore
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ore
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: ore
+        component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ore-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5173
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5173
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5173
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 250m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ore-frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: ore
+    component: frontend
+  ports:
+    - port: 80
+      targetPort: 5173

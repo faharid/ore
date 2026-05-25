@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ore-postgres
+  labels:
+    app: ore
+    component: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ore
+      component: postgres
+  template:
+    metadata:
+      labels:
+        app: ore
+        component: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: ore
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ore-secrets
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: ore_ui
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ore-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: ore
+    component: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

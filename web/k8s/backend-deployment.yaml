@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ore-backend
+  labels:
+    app: ore
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ore
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: ore
+        component: backend
+    spec:
+      containers:
+        - name: backend
+          image: ore-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3001
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ore-secrets
+                  key: jwt-secret
+            - name: TERRAFORM_DIR
+              value: /terraform
+            - name: ENVIRONMENTS_DIR
+              value: /terraform/environments
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ore-secrets
+                  key: database-url
+                  optional: true
+            - name: SEED_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ore-secrets
+                  key: seed-admin-password
+                  optional: true
+          volumeMounts:
+            - name: terraform
+              mountPath: /terraform
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 250m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+      volumes:
+        - name: terraform
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ore-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: ore
+    component: backend
+  ports:
+    - port: 3001
+      targetPort: 3001

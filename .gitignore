@@ -31,3 +31,10 @@ credentials
 
 # CI artifacts
 .terraformrc
+
+# ore Web UI backend data
+web/backend/data/
+web/backend/.env
+web/frontend/node_modules/
+web/backend/node_modules/
+users.json

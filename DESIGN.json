@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-24T21:15:00Z",
+  "title": "Design System: ore Infrastructure Console",
+  "extensions": {
+    "colorMeta": {
+      "primary-accent": {
+        "role": "primary",
+        "displayName": "Decision Blue",
+        "canonical": "oklch(50% 0.2 246)",
+        "tonalRamp": [
+          "#111827",
+          "#1d4ed8",
+          "#2563eb",
+          "#3b82f6",
+          "#60a5fa",
+          "#93c5fd",
+          "#bfdbfe",
+          "#dbeafe"
+        ]
+      },
+      "primary-accent-hover": {
+        "role": "primary-variant",
+        "displayName": "Decision Blue (Pressed)",
+        "canonical": "oklch(47% 0.2 246)"
+      },
+      "status-error": {
+        "role": "error",
+        "displayName": "Failure Red",
+        "canonical": "oklch(62% 0.25 14)",
+        "tonalRamp": [
+          "#111827",
+          "#7f1d1d",
+          "#b91c1c",
+          "#dc2626",
+          "#f87171",
+          "#fca5a5",
+          "#fecaca",
+          "#fee2e2"
+        ]
+      },
+      "status-success": {
+        "role": "success",
+        "displayName": "Deployment Green",
+        "canonical": "oklch(65% 0.2 142)",
+        "tonalRamp": [
+          "#111827",
+          "#14532d",
+          "#15803d",
+          "#16a34a",
+          "#4ade80",
+          "#86efac",
+          "#bbf7d0",
+          "#dcfce7"
+        ]
+      },
+      "status-warning": {
+        "role": "warning",
+        "displayName": "In-Progress Yellow",
+        "canonical": "oklch(75% 0.18 86)",
+        "tonalRamp": [
+          "#111827",
+          "#713f12",
+          "#a16207",
+          "#ca8a04",
+          "#facc15",
+          "#fde047",
+          "#fef08a",
+          "#fef3c7"
+        ]
+      },
+      "module-vpc": {
+        "role": "module-primary",
+        "displayName": "VPC Foundation (Bold)",
+        "canonical": "oklch(50% 0.2 246)"
+      },
+      "module-ecs": {
+        "role": "module-secondary",
+        "displayName": "ECS Muted Orange",
+        "canonical": "oklch(56% 0.15 34)"
+      },
+      "module-rds": {
+        "role": "module-secondary",
+        "displayName": "RDS Muted Green",
+        "canonical": "oklch(56% 0.15 130)"
+      },
+      "neutral-bg-primary": {
+        "role": "neutral-bg",
+        "displayName": "Canvas Background",
+        "canonical": "oklch(8% 0.01 246)"
+      },
+      "neutral-bg-secondary": {
+        "role": "neutral-bg",
+        "displayName": "Card Background",
+        "canonical": "oklch(13% 0.01 246)"
+      },
+      "neutral-text-primary": {
+        "role": "neutral-text",
+        "displayName": "Primary Text",
+        "canonical": "oklch(95% 0.01 246)"
+      },
+      "neutral-text-secondary": {
+        "role": "neutral-text",
+        "displayName": "Secondary Text",
+        "canonical": "oklch(82% 0.01 246)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Page Titles)",
+        "purpose": "Page title 'ore' on login. Rare; signals major page boundary."
+      },
+      "headline": {
+        "displayName": "Headline (Section Titles)",
+        "purpose": "Component titles, major section headings. 'Infrastructure Status', 'Configuration Panel'."
+      },
+      "title": {
+        "displayName": "Title (Subsection Headings)",
+        "purpose": "Module names, card titles, form group headings."
+      },
+      "body": {
+        "displayName": "Body (Main Content)",
+        "purpose": "Form labels, descriptions, helper text. Default text throughout UI. Line length 65–75ch."
+      },
+      "label": {
+        "displayName": "Label (Metadata)",
+        "purpose": "Metadata, timestamps, status tags, form hints. Smallest interactive text."
+      },
+      "mono": {
+        "displayName": "Monospace (Code/Terminal)",
+        "purpose": "Terminal output, values, code references. Never antialiased for pixel-perfect legibility."
+      }
+    },
+    "shadows": [
+      {
+        "name": "none",
+        "value": "none",
+        "purpose": "ore uses tonal layering, not shadows. All depth is communicated via background color and borders."
+      }
+    ],
+    "motion": [
+      {
+        "name": "standard-ease",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "All state transitions (button hover, input focus, color changes). 200ms duration."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Small screens (mobile). Not yet fully responsive; Phase 2+ work."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Bold action button. Plan, Apply, Save Config, and other primary CTAs. Hover to darker blue.",
+      "html": "<button class=\"ds-btn-primary\">Save Config</button>",
+      "css": ".ds-btn-primary { background: #2563eb; color: #f3f4f6; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border: none; border-radius: 8px; cursor: pointer; transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: #1d4ed8; } .ds-btn-primary:active { background: #1d4ed8; } .ds-btn-primary:disabled { background: #4b5563; color: #6b7280; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Subtle action button. Cancel, Close, or lower-priority actions. Hover shifts background.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: #374151; color: #f3f4f6; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border: none; border-radius: 8px; cursor: pointer; transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-secondary:hover { background: #4b5563; } .ds-btn-secondary:active { background: #4b5563; } .ds-btn-secondary:disabled { background: #1f2937; color: #6b7280; cursor: not-allowed; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard form input. Focus border shifts to blue. Validation errors shown as red text below, not border color.",
+      "html": "<input type=\"text\" class=\"ds-input\" placeholder=\"Enter value\" />",
+      "css": ".ds-input { background: #374151; color: #f3f4f6; border: 1px solid #4b5563; padding: 8px 12px; font-size: 0.875rem; border-radius: 8px; transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input:focus { outline: none; border-color: #2563eb; } .ds-input::placeholder { color: #9ca3af; } .ds-input:disabled { background: #1f2937; color: #6b7280; border-color: #374151; cursor: not-allowed; }"
+    },
+    {
+      "name": "Card / Container",
+      "kind": "card",
+      "refersTo": "card-border",
+      "description": "Content container. Tonal background, subtle border, rounded corners. Used for ConfigPanel, Terminal, MonitorDash, etc.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Infrastructure Status</h3><p class=\"ds-card-text\">All systems operational</p></div>",
+      "css": ".ds-card { background: #1f2937; border: 1px solid #4b5563; border-radius: 8px; padding: 24px; } .ds-card-title { font-size: 1.125rem; font-weight: 600; color: #f3f4f6; margin: 0 0 16px 0; } .ds-card-text { font-size: 0.875rem; color: #d1d5db; line-height: 1.6; margin: 0; }"
+    },
+    {
+      "name": "Module (Canvas Node)",
+      "kind": "custom",
+      "refersTo": "canvas-module",
+      "description": "Infrastructure module on canvas. 48×48px square, icon + label below. Color follows hierarchy (VPC bold, dependents muted).",
+      "html": "<div class=\"ds-module ds-module-vpc\"><span class=\"ds-module-icon\">🌐</span><div class=\"ds-module-label\">VPC</div></div>",
+      "css": ".ds-module { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: move; position: relative; transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-module:hover { transform: scale(1.05); } .ds-module-icon { font-size: 24px; } .ds-module-label { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: #d1d5db; white-space: nowrap; font-weight: 500; } .ds-module-vpc { background: #2563eb; } .ds-module-ecs { background: #ea580c; } .ds-module-rds { background: #16a34a; } .ds-module-alb { background: #0891b2; }"
+    },
+    {
+      "name": "Terminal Output Line",
+      "kind": "custom",
+      "refersTo": "terminal-line",
+      "description": "Colored output line in Terminal. Color reflects message type: green (success), red (error), yellow (warning), blue (info), gray (default).",
+      "html": "<div class=\"ds-terminal\"><div class=\"ds-term-line ds-term-success\">✓ VPC created successfully</div><div class=\"ds-term-line ds-term-error\">Error: Invalid CIDR notation</div><div class=\"ds-term-line ds-term-info\">Plan: 5 to add, 0 to change</div></div>",
+      "css": ".ds-terminal { background: #111827; border: 1px solid #374151; border-radius: 8px; padding: 16px; font-family: 'Monaco', 'Courier New', monospace; font-size: 0.75rem; line-height: 1.6; max-height: 400px; overflow-y: auto; } .ds-term-line { margin: 0; color: #d1d5db; } .ds-term-success { color: #4ade80; } .ds-term-error { color: #f87171; } .ds-term-warning { color: #facc15; } .ds-term-info { color: #60a5fa; }"
+    },
+    {
+      "name": "Error Message",
+      "kind": "custom",
+      "refersTo": "validation-error",
+      "description": "Inline validation error. Red text below input field. Shown on change; clears when corrected.",
+      "html": "<div class=\"ds-error\">Port must be at most 65535</div>",
+      "css": ".ds-error { font-size: 0.75rem; color: #f87171; margin-top: 4px; line-height: 1.4; }"
+    },
+    {
+      "name": "Success Toast",
+      "kind": "custom",
+      "refersTo": "success-message",
+      "description": "Success feedback message. Green background, subtle style. Appears for 3s after save/deploy.",
+      "html": "<div class=\"ds-success\">Configuration saved successfully</div>",
+      "css": ".ds-success { background: #15803d; color: #dcfce7; padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; font-weight: 500; animation: fadeInOut 3s ease-out; } @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-8px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Architect's Workspace",
+    "overview": "ore's interface is a blueprint-focused design system inspired by how architects work: clear line weights, intentional hierarchy, visible relationships between components, and a restrained tonal palette that emphasizes information over decoration. Infrastructure engineers using ore should feel like they're designing something precise and intentional—each module placement, each configuration change, each deployment carries weight and is visible on the canvas. The system deliberately rejects SaaS dashboard clichés, gaming UI effects, and terminal envy. Instead, it provides a space where the infrastructure—not the interface—is the focus.",
+    "keyCharacteristics": [
+      "Methodical and precise—every element has visual intent; nothing is decorative",
+      "Information-first hierarchy—current state precedes actions",
+      "Visual relationships matter—module dependencies shown via connectors; proximity conveys meaning",
+      "Trustworthy under pressure—errors are actionable; destructive operations require confirmation",
+      "Instant feedback—SSE streaming shows exactly what's happening in real time"
+    ],
+    "rules": [
+      {
+        "name": "The Hierarchy Rule",
+        "body": "VPC always receives the primary accent color. All dependent modules receive desaturated, toned versions. This creates visual subordination: a glance at the canvas shows the infrastructure topology just from module color intensity.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Voice Rule",
+        "body": "The primary accent color appears on ≤10% of any canvas (typically the VPC module and one primary CTA button). Its rarity is the point.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tonal Depth Rule",
+        "body": "ore uses tonal layering, not shadow depth. Depth is communicated through background color shifts and stroke weight, never blur or drop shadows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Trust Rule",
+        "body": "Validate early and show errors inline. Never prevent form submission with disabled buttons; instead, show a clear error message and let users attempt to save. Destructive operations require explicit confirmation.",
+        "section": "components"
+      },
+      {
+        "name": "The Streaming Rule",
+        "body": "Terraform output streams live via SSE. Never buffer or hide progress. Real-time output builds trust.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use the primary accent color (#2563eb) sparingly and intentionally.",
+      "Do express module relationships through color hierarchy: VPC bold, dependents desaturated.",
+      "Do show infrastructure state before offering actions.",
+      "Do use tonal layering (background color shifts) instead of shadows.",
+      "Do validate early and show errors inline (red text below fields).",
+      "Do stream terraform output in real time (SSE). Never buffer or hide progress.",
+      "Do require explicit confirmation for destructive operations (destroy, delete).",
+      "Do use consistent 8px spacing grid. Stick to the scale (8, 16, 24, 32px for padding)."
+    ],
+    "donts": [
+      "Don't use side-stripe borders (border-left or border-right > 1px) as colored accents on cards or alerts.",
+      "Don't use gradients (background or text). Status and hierarchy come from solid colors and weight.",
+      "Don't use glassmorphism, backdrop blur, or drop shadows as default effects.",
+      "Don't mix status colors with module colors. Red = state (error/alert), not module type.",
+      "Don't decorate inputs with icons unless the icon is functional.",
+      "Don't use animations for layout changes (don't animate CSS grid, flexbox, or position).",
+      "Don't hide errors behind loading spinners. Use SSE streaming to show real progress and real failures.",
+      "Don't SaaS-ify the interface: no hero metrics, no gradient overlays, no identical card grids.",
+      "Don't try to look like a CLI when a GUI is better. The terminal shows terraform output; the GUI shows infrastructure visually."
+    ]
+  }
+}

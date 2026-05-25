@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ore-postgres
+    environment:
+      POSTGRES_USER: ore
+      POSTGRES_PASSWORD: ore_dev_password
+      POSTGRES_DB: ore_ui
+    ports:
+      - '5432:5432'
+    volumes:
+      - ore-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ore -d ore_ui']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ore-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ore-backend
+    ports:
+      - '3001:3001'
+    volumes:
+      - ../terraform:/app/terraform:ro
+    environment:
+      - PORT=3001
+      - NODE_ENV=development
+      - JWT_SECRET=dev-secret-change-in-prod
+      - DATABASE_URL=postgresql://ore:ore_dev_password@postgres:5432/ore_ui
+      - SEED_ADMIN_PASSWORD=admin
+      - TERRAFORM_DIR=/app/terraform
+      - ENVIRONMENTS_DIR=/app/terraform/environments
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ore-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ore-frontend
+    ports:
+      - '5173:5173'
+    depends_on:
+      - backend
+    networks:
+      - ore-network
+
+volumes:
+  ore-postgres-data:
+
+networks:
+  ore-network:
+    driver: bridge

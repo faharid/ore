@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TERRAFORM_DIR = process.env.TERRAFORM_DIR || path.join(__dirname, '../../../terraform');
+const TERRAFORM_DIR =
+  process.env.TERRAFORM_DIR || path.join(__dirname, '../../../../terraform');
 
 const initLocks = new Map();
 
@@ -57,9 +58,22 @@ export async function ensureTerraformInit(envVars = {}) {
 
   const initPromise = (async () => {
     try {
-      const result = await runTerraform(['init', '-input=false'], envVars);
+      const initArgs = ['init', '-input=false'];
+      const backendHcl = path.join(TERRAFORM_DIR, 'backend.hcl');
+      const useLocal = process.env.TERRAFORM_LOCAL_BACKEND === 'true';
+
+      if (useLocal) {
+        initArgs.push('-reconfigure');
+      } else if (await fileExists(backendHcl)) {
+        initArgs.push(`-backend-config=${backendHcl}`);
+      }
+
+      const result = await runTerraform(initArgs, envVars);
       if (!result.success) {
-        throw new Error(result.error || result.stderr || 'Terraform init failed');
+        const hint = useLocal
+          ? ' Run: cd ore/terraform && ./scripts/init-local-state.sh'
+          : ' Create backend.hcl and run terraform init, or set TERRAFORM_LOCAL_BACKEND=true';
+        throw new Error((result.error || result.stderr || 'Terraform init failed') + hint);
       }
       return true;
     } finally {

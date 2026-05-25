@@ -26,4 +26,14 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await workspaceService.deleteWorkspace(req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ message: err.message });
+    next(err);
+  }
+});
+
 export default router;

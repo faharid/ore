@@ -51,3 +51,36 @@ export async function createWorkspace(name) {
   }
   return createWorkspaceInFile(name);
 }
+
+async function deleteWorkspaceFromFile(id) {
+  if (id === 'default') {
+    throw { status: 403, message: 'Cannot delete the default workspace' };
+  }
+  const workspaces = await listWorkspacesFromFile();
+  const index = workspaces.findIndex((w) => w.id === id);
+  if (index === -1) {
+    throw { status: 404, message: 'Workspace not found' };
+  }
+  workspaces.splice(index, 1);
+  await fs.writeFile(WORKSPACES_FILE, JSON.stringify(workspaces, null, 2));
+
+  const ENVIRONMENTS_DIR =
+    process.env.ENVIRONMENTS_DIR ||
+    path.join(__dirname, '../../../../terraform/environments');
+  const workspaceDir = path.join(ENVIRONMENTS_DIR, id);
+  try {
+    await fs.rm(workspaceDir, { recursive: true, force: true });
+  } catch {
+    /* directory may not exist */
+  }
+}
+
+export async function deleteWorkspace(id) {
+  if (id === 'default') {
+    throw { status: 403, message: 'Cannot delete the default workspace' };
+  }
+  if (isDatabaseEnabled()) {
+    return workspacesRepo.deleteWorkspace(id);
+  }
+  return deleteWorkspaceFromFile(id);
+}

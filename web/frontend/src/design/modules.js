@@ -1,32 +1,17 @@
-/** Module → design system class (DESIGN.md hierarchy) */
-export const MODULE_DS_CLASS = {
-  vpc: 'ds-module-vpc',
-  ecs: 'ds-module-ecs',
-  rds: 'ds-module-rds',
-  alb: 'ds-module-alb',
-  monitoring: 'ds-module-monitoring',
-  autoscaling: 'ds-module-tertiary',
-  secrets: 'ds-module-secondary',
-  iam: 'ds-module-secondary',
-  cloudfront: 'ds-module-secondary',
-  budgets: 'ds-module-secondary',
-  client_vpn: 'ds-module-secondary',
-  ssm: 'ds-module-secondary'
-};
-
+/** Infrastructure modules — icons use Tabler (ti ti-*) */
 export const MODULES = [
-  { id: 'vpc', label: 'VPC', icon: '🌐', dsClass: MODULE_DS_CLASS.vpc },
-  { id: 'ecs', label: 'ECS', icon: '🐳', dsClass: MODULE_DS_CLASS.ecs },
-  { id: 'rds', label: 'RDS', icon: '🗄️', dsClass: MODULE_DS_CLASS.rds },
-  { id: 'alb', label: 'ALB', icon: '⚖️', dsClass: MODULE_DS_CLASS.alb },
-  { id: 'autoscaling', label: 'Autoscaling', icon: '📈', dsClass: MODULE_DS_CLASS.autoscaling },
-  { id: 'monitoring', label: 'Monitoring', icon: '📊', dsClass: MODULE_DS_CLASS.monitoring },
-  { id: 'secrets', label: 'Secrets', icon: '🔐', dsClass: MODULE_DS_CLASS.secrets },
-  { id: 'iam', label: 'IAM', icon: '🔑', dsClass: MODULE_DS_CLASS.iam },
-  { id: 'cloudfront', label: 'CloudFront', icon: '⚡', dsClass: MODULE_DS_CLASS.cloudfront },
-  { id: 'budgets', label: 'Budgets', icon: '💰', dsClass: MODULE_DS_CLASS.budgets },
-  { id: 'client_vpn', label: 'Client VPN', icon: '🔒', dsClass: MODULE_DS_CLASS.client_vpn },
-  { id: 'ssm', label: 'SSM', icon: '⚙️', dsClass: MODULE_DS_CLASS.ssm }
+  { id: 'vpc', label: 'VPC', subtitle: 'Network', icon: 'ti-network' },
+  { id: 'alb', label: 'ALB', subtitle: 'Load Balancer', icon: 'ti-scale' },
+  { id: 'ecs', label: 'ECS', subtitle: 'Fargate', icon: 'ti-box' },
+  { id: 'rds', label: 'RDS', subtitle: 'PostgreSQL', icon: 'ti-database' },
+  { id: 'secrets', label: 'Secrets', subtitle: 'Manager', icon: 'ti-lock' },
+  { id: 'monitoring', label: 'Monitoring', subtitle: 'CloudWatch', icon: 'ti-chart-bar' },
+  { id: 'iam', label: 'IAM', subtitle: 'Roles', icon: 'ti-shield-check' },
+  { id: 'autoscaling', label: 'Autoscaling', subtitle: 'Policies', icon: 'ti-arrows-vertical' },
+  { id: 'cloudfront', label: 'CloudFront', subtitle: 'CDN', icon: 'ti-cloud' },
+  { id: 'budgets', label: 'Budgets', subtitle: 'Alerts', icon: 'ti-currency-dollar' },
+  { id: 'client_vpn', label: 'Client VPN', subtitle: 'Access', icon: 'ti-lock-access' },
+  { id: 'ssm', label: 'SSM', subtitle: 'Endpoints', icon: 'ti-settings' }
 ];
 
 export const MODULE_DEPENDENCIES = {
@@ -44,5 +29,6 @@ export const MODULE_DEPENDENCIES = {
   ssm: ['vpc']
 };
 
-export const MODULE_SIZE = 48;
-export const MODULE_LABEL_OFFSET = 24;
+export const MODULE_CARD_WIDTH = 130;
+export const MODULE_CARD_HEIGHT = 96;
+export const MODULE_LABEL_OFFSET = 8;

@@ -43,8 +43,9 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/monitor" element={<Navigate to="/monitoring" replace />} />
           <Route
-            path="/monitor"
+            path="/monitoring"
             element={
               <ProtectedRoute>
                 <Monitor />

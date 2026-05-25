@@ -1,0 +1,6 @@
+# Copy to <workspace>/dev.tfvars or dev.tfvars (default workspace)
+# Example: cp dev.tfvars.example dev.tfvars
+
+project_name = "ore"
+environment  = "dev"
+aws_region   = "us-east-1"

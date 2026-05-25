@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ore Infrastructure Console — DESIGN.md / DESIGN.json */
+/* ore Infrastructure Console — infra dashboard v2 palette */
 
 @layer base {
   * {
@@ -27,12 +27,15 @@
 
 @layer components {
   .ds-btn-primary {
-    @apply bg-ore-accent text-ore-text-primary text-ore-body font-medium;
-    padding: 8px 16px;
+    @apply bg-ore-accent text-ore-bg-primary text-ore-body font-semibold;
+    padding: 10px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .ds-btn-primary:hover:not(:disabled) {
@@ -40,47 +43,69 @@
   }
 
   .ds-btn-primary:disabled {
-    background: #4b5563;
-    color: #6b7280;
+    background: #2d3a52;
+    color: #6d7d9d;
     cursor: not-allowed;
   }
 
   .ds-btn-secondary {
-    @apply bg-ore-bg-tertiary text-ore-text-primary text-ore-body font-medium;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
+    @apply bg-transparent text-ore-accent text-ore-body font-semibold;
+    padding: 10px 16px;
+    border: 1px solid #4effa0;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .ds-btn-secondary:hover:not(:disabled) {
-    @apply bg-ore-border;
+    background: rgba(78, 255, 160, 0.08);
   }
 
   .ds-btn-secondary:disabled {
-    @apply bg-ore-bg-secondary text-gray-500;
+    border-color: #2d2d4d;
+    color: #6d7d9d;
     cursor: not-allowed;
   }
 
   .ds-btn-danger {
-    @apply bg-red-800 text-ore-text-primary text-ore-body font-medium;
-    padding: 8px 16px;
-    border: 1px solid #991b1b;
-    border-radius: 8px;
+    @apply bg-transparent text-ore-error text-ore-body font-semibold;
+    padding: 10px 16px;
+    border: 1px solid #ff4444;
+    border-radius: 6px;
     cursor: pointer;
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .ds-btn-danger:hover:not(:disabled) {
-    background: #991b1b;
+    background: rgba(255, 68, 68, 0.1);
+  }
+
+  .ds-btn-ghost {
+    @apply bg-transparent text-ore-text-secondary text-ore-body;
+    padding: 10px 12px;
+    border: 1px solid #2d2d4d;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ds-btn-ghost:hover:not(:disabled) {
+    @apply border-ore-accent text-ore-text-primary;
   }
 
   .ds-input {
-    @apply bg-ore-bg-tertiary text-ore-text-primary text-ore-body w-full;
-    border: 1px solid #4b5563;
-    padding: 8px 12px;
-    border-radius: 8px;
+    @apply bg-ore-bg-input text-ore-text-primary text-ore-body w-full;
+    border: 1px solid #2d2d4d;
+    padding: 10px 12px;
+    border-radius: 6px;
     transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -94,20 +119,24 @@
   }
 
   .ds-input:disabled {
-    @apply bg-ore-bg-secondary text-gray-500 border-ore-bg-tertiary;
+    @apply bg-ore-bg-secondary text-ore-text-muted border-ore-border;
     cursor: not-allowed;
   }
 
   .ds-select {
-    @apply ds-input;
+    @apply ds-input cursor-pointer;
   }
 
   .ds-card {
-    @apply bg-ore-bg-secondary border border-ore-border rounded-ore p-6;
+    @apply bg-ore-bg-secondary border border-ore-border rounded-lg;
   }
 
   .ds-card-accent {
-    @apply ds-card border-ore-accent;
+    @apply ds-card border-ore-border;
+  }
+
+  .ds-canvas-frame {
+    @apply ds-card relative min-h-[600px] p-12 overflow-hidden;
   }
 
   .ds-card-title {
@@ -124,18 +153,19 @@
   }
 
   .ds-success {
-    background: #15803d;
-    color: #dcfce7;
+    background: rgba(78, 255, 160, 0.15);
+    color: #4effa0;
     padding: 12px 16px;
-    border-radius: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(78, 255, 160, 0.3);
     @apply text-ore-body font-medium;
   }
 
   .ds-alert-error {
-    @apply text-ore-body p-3 rounded-ore;
-    background: #1f2937;
-    border: 1px solid #991b1b;
-    color: #fecaca;
+    @apply text-ore-body p-3 rounded-lg;
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    color: #ff6666;
   }
 
   .ds-page {
@@ -143,29 +173,45 @@
   }
 
   .ds-sidebar {
-    @apply bg-ore-bg-secondary border-r border-ore-border flex flex-col;
+    @apply bg-ore-bg-secondary border-r border-ore-border flex flex-col shrink-0;
+  }
+
+  .ds-sidebar-section {
+    @apply text-[11px] text-ore-accent font-bold uppercase tracking-wider m-0 mb-3;
   }
 
   .ds-nav-item {
-    @apply w-full text-left px-3 py-2 rounded-ore text-ore-body text-ore-text-secondary;
+    @apply w-full text-left px-3 py-2.5 rounded-md text-ore-body text-ore-text-secondary;
+    border: 1px solid transparent;
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-      color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .ds-nav-item:hover {
-    @apply bg-ore-bg-tertiary text-ore-text-secondary;
+    @apply border-ore-border text-ore-text-primary;
   }
 
   .ds-nav-item-active {
-    @apply ds-nav-item bg-ore-accent text-ore-text-primary;
+    @apply ds-nav-item bg-ore-accent text-ore-bg-primary font-medium;
+    border-color: transparent;
   }
 
   .ds-nav-item-active:hover {
-    @apply bg-ore-accent-hover text-ore-text-primary;
+    @apply bg-ore-accent-hover text-ore-bg-primary;
+  }
+
+  .ds-sidebar-link {
+    @apply text-ore-accent text-ore-label no-underline flex items-center gap-2;
+    transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ds-sidebar-link:hover {
+    opacity: 0.85;
   }
 
   .ds-link {
-    @apply text-ore-info text-ore-body hover:underline;
+    @apply text-ore-accent text-ore-body hover:underline;
   }
 
   .ds-display {
@@ -181,75 +227,45 @@
   }
 
   .ds-canvas {
-    @apply w-full h-full bg-ore-bg-primary relative overflow-auto;
+    @apply w-full h-full bg-transparent relative overflow-auto;
   }
 
-  .ds-module {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    cursor: move;
-    position: relative;
-    transition: outline-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-      opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  .ds-module-card {
+    @apply bg-ore-bg-tertiary border-[1.5px] border-ore-accent rounded-lg text-center cursor-grab;
+    padding: 20px;
+    min-width: 130px;
+    transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .ds-module-selected {
-    outline: 2px solid #f3f4f6;
-    outline-offset: 2px;
+  .ds-module-card:hover {
+    box-shadow: 0 0 0 1px rgba(78, 255, 160, 0.25);
   }
 
-  .ds-module-highlighted {
-    outline: 2px solid #facc15;
-    outline-offset: 2px;
+  .ds-module-card-selected {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  }
+
+  .ds-module-card-highlighted {
+    box-shadow: 0 0 0 2px #facc15;
   }
 
   .ds-module-icon {
-    font-size: 1.25rem;
+    font-size: 28px;
+    @apply text-ore-accent block mb-2;
     line-height: 1;
   }
 
-  .ds-module-label {
-    position: absolute;
-    bottom: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    @apply text-ore-label text-ore-text-secondary whitespace-nowrap font-medium;
+  .ds-module-title {
+    @apply text-[13px] font-semibold text-ore-text-primary m-0;
   }
 
-  .ds-module-vpc {
-    background: #2563eb;
-  }
-
-  .ds-module-ecs {
-    background: #ea580c;
-  }
-
-  .ds-module-rds {
-    background: #16a34a;
-  }
-
-  .ds-module-alb {
-    background: #0891b2;
-  }
-
-  .ds-module-monitoring {
-    background: #7c3aed;
-  }
-
-  .ds-module-secondary {
-    background: #ec4899;
-  }
-
-  .ds-module-tertiary {
-    background: #14b8a6;
+  .ds-module-subtitle {
+    @apply text-[11px] text-ore-text-tertiary mt-1 m-0;
   }
 
   .ds-terminal {
-    @apply bg-ore-bg-primary border border-ore-bg-tertiary rounded-ore p-4 font-mono text-ore-mono flex-1 overflow-auto;
+    @apply bg-ore-bg-primary border border-ore-border rounded-lg p-4 font-mono text-ore-mono flex-1 overflow-auto;
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: unset;
   }
@@ -275,7 +291,25 @@
   }
 
   .ds-cost-pill {
-    @apply bg-ore-bg-secondary border border-ore-border rounded-ore p-3 text-ore-body min-w-[200px];
+    @apply text-right;
+  }
+
+  .ds-toolbar {
+    @apply bg-ore-bg-secondary border-b border-ore-border px-6 py-3 flex gap-3 items-center;
+  }
+
+  .ds-main-header {
+    @apply bg-ore-bg-secondary border-b border-ore-border px-6 py-4 flex justify-between items-center;
+  }
+
+  .ds-drawer {
+    @apply bg-ore-bg-secondary border-l border-ore-border flex flex-col shrink-0 overflow-hidden;
+    width: 384px;
+    max-width: 100vw;
+  }
+
+  .ds-drawer-backdrop {
+    @apply fixed inset-0 bg-black/50 z-40;
   }
 
   .ds-metric-row {
@@ -293,6 +327,70 @@
   .ds-spinner {
     @apply inline-block w-4 h-4 border-2 border-ore-warning border-t-transparent rounded-full;
     animation: ds-spin 0.8s linear infinite;
+  }
+
+  .ds-modal-backdrop {
+    @apply fixed inset-0 z-[100] flex items-center justify-center p-4;
+    background: rgba(15, 15, 30, 0.85);
+  }
+
+  .ds-modal {
+    @apply bg-ore-bg-secondary border border-ore-border rounded-lg w-full max-w-md shadow-2xl;
+    padding: 24px;
+    animation: ds-modal-in 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ds-modal-header {
+    @apply flex items-start gap-3 mb-4;
+  }
+
+  .ds-modal-icon {
+    @apply shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-xl;
+  }
+
+  .ds-modal-icon-danger {
+    background: rgba(255, 68, 68, 0.12);
+    color: #ff6666;
+  }
+
+  .ds-modal-icon-alert {
+    background: rgba(78, 255, 160, 0.12);
+    color: #4effa0;
+  }
+
+  .ds-modal-title {
+    @apply text-ore-headline text-ore-text-primary font-semibold m-0 pt-1;
+  }
+
+  .ds-modal-body {
+    @apply text-ore-body text-ore-text-secondary leading-relaxed;
+  }
+
+  .ds-modal-body strong {
+    @apply text-ore-text-primary font-semibold;
+  }
+
+  .ds-modal-form {
+    @apply mt-4 space-y-2;
+  }
+
+  .ds-modal-error {
+    @apply text-ore-label text-ore-error mt-3 mb-0;
+  }
+
+  .ds-modal-actions {
+    @apply flex justify-end gap-2 mt-6 pt-4 border-t border-ore-border;
+  }
+}
+
+@keyframes ds-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 

@@ -53,14 +53,45 @@ const MODULE_FIELDS = {
   ssm: [{ name: 'enable_ssm_endpoints', label: 'Enable SSM Endpoints', type: 'checkbox' }]
 };
 
+/** Value shown in the form: stored config, else field default */
+function getFieldValue(config, field) {
+  if (Object.prototype.hasOwnProperty.call(config, field.name)) {
+    return config[field.name];
+  }
+  if (field.type === 'checkbox') return false;
+  if (field.default !== undefined) return field.default;
+  return '';
+}
+
+function normalizeFieldValue(field, value) {
+  if (field.type === 'checkbox') return Boolean(value);
+  if (field.type === 'number') {
+    if (value === '' || value === null || value === undefined) return value;
+    const num = Number(value);
+    return Number.isNaN(num) ? value : num;
+  }
+  return value;
+}
+
 const validateField = (field, value) => {
   if (field.type === 'checkbox') return null;
-  if (field.required && !value) return `${field.label} is required`;
-  if (field.type === 'number') {
+
+  const empty =
+    value === undefined ||
+    value === null ||
+    (typeof value === 'string' && value.trim() === '');
+
+  if (field.required && empty) return `${field.label} is required`;
+
+  if (field.type === 'number' && !empty) {
     const num = Number(value);
-    if (isNaN(num)) return `${field.label} must be a number`;
-    if (field.min !== undefined && num < field.min) return `${field.label} must be at least ${field.min}`;
-    if (field.max !== undefined && num > field.max) return `${field.label} must be at most ${field.max}`;
+    if (Number.isNaN(num)) return `${field.label} must be a number`;
+    if (field.min !== undefined && num < field.min) {
+      return `${field.label} must be at least ${field.min}`;
+    }
+    if (field.max !== undefined && num > field.max) {
+      return `${field.label} must be at most ${field.max}`;
+    }
   }
   if (field.type === 'email' || field.validate === 'email') {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -87,8 +118,11 @@ export default function ConfigPanel({ env, node, onSave }) {
   const fields = MODULE_FIELDS[node] || [];
 
   useEffect(() => {
+    setLoading(true);
+    setErrors({});
+    setMessage('');
     loadConfig();
-  }, [env]);
+  }, [env, node]);
 
   const loadConfig = async () => {
     try {
@@ -96,16 +130,17 @@ export default function ConfigPanel({ env, node, onSave }) {
       setConfig(response.data);
       setErrors({});
       setMessage('');
-      setLoading(false);
     } catch (err) {
       console.error('Failed to load config:', err);
       setMessage('Error loading configuration');
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (fieldName, value) => {
+  const handleChange = (fieldName, rawValue) => {
     const field = fields.find((f) => f.name === fieldName);
+    const value = normalizeFieldValue(field, rawValue);
     const error = validateField(field, value);
     setConfig((prev) => ({ ...prev, [fieldName]: value }));
     setErrors((prev) => ({ ...prev, [fieldName]: error }));
@@ -114,11 +149,20 @@ export default function ConfigPanel({ env, node, onSave }) {
   const validateAll = () => {
     const newErrors = {};
     fields.forEach((field) => {
-      const error = validateField(field, config[field.name]);
+      const value = getFieldValue(config, field);
+      const error = validateField(field, value);
       if (error) newErrors[field.name] = error;
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const buildPayload = () => {
+    const payload = { ...config };
+    fields.forEach((field) => {
+      payload[field.name] = normalizeFieldValue(field, getFieldValue(config, field));
+    });
+    return payload;
   };
 
   const performSave = useCallback(async () => {
@@ -129,7 +173,9 @@ export default function ConfigPanel({ env, node, onSave }) {
     setSaving(true);
     setMessage('');
     try {
-      await environmentApi.update(env, config);
+      const payload = buildPayload();
+      await environmentApi.update(env, payload);
+      setConfig(payload);
       setMessage('Configuration saved successfully');
       setTimeout(() => setMessage(''), 3000);
       onSave?.();
@@ -163,12 +209,12 @@ export default function ConfigPanel({ env, node, onSave }) {
   const messageIsError = message.includes('Error') || message.includes('Fix');
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-ore-border">
-        <h3 className="ds-headline capitalize">{node}</h3>
+    <div className="flex flex-col h-full -m-4">
+      <div className="px-4 pt-2 pb-3 border-b border-ore-border shrink-0">
+        <h3 className="ds-headline capitalize m-0">{node}</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {fields.length === 0 ? (
           <p className="ds-card-text">No configuration options for this module</p>
         ) : (
@@ -181,7 +227,7 @@ export default function ConfigPanel({ env, node, onSave }) {
               {field.type === 'checkbox' ? (
                 <input
                   type="checkbox"
-                  checked={config[field.name] || false}
+                  checked={Boolean(getFieldValue(config, field))}
                   onChange={(e) => handleChange(field.name, e.target.checked)}
                   className="w-4 h-4 accent-ore-accent"
                 />
@@ -189,7 +235,7 @@ export default function ConfigPanel({ env, node, onSave }) {
                 <>
                   <input
                     type={field.type}
-                    value={config[field.name] ?? field.default ?? ''}
+                    value={getFieldValue(config, field)}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     placeholder={String(field.default ?? '')}
                     className="ds-input"
@@ -202,7 +248,7 @@ export default function ConfigPanel({ env, node, onSave }) {
         )}
       </div>
 
-      <div className="p-4 border-t border-ore-border space-y-2">
+      <div className="px-4 py-4 border-t border-ore-border space-y-2 shrink-0">
         {message &&
           (messageIsError ? (
             <div className="ds-alert-error text-ore-label">{message}</div>

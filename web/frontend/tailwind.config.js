@@ -6,27 +6,23 @@ export default {
     extend: {
       colors: {
         ore: {
-          accent: '#2563eb',
-          'accent-hover': '#1d4ed8',
-          'accent-muted': '#3b82f6',
-          'bg-primary': '#111827',
-          'bg-secondary': '#1f2937',
-          'bg-tertiary': '#374151',
-          border: '#4b5563',
-          'text-primary': '#f3f4f6',
-          'text-secondary': '#d1d5db',
-          'text-tertiary': '#9ca3af',
-          error: '#f87171',
-          success: '#4ade80',
+          accent: '#4EFFA0',
+          'accent-hover': '#3de890',
+          'accent-muted': '#6dffb8',
+          'bg-primary': '#0f0f1e',
+          'bg-secondary': '#1a1a2e',
+          'bg-tertiary': '#2d3a52',
+          'bg-input': '#0f0f1e',
+          border: '#2d2d4d',
+          'text-primary': '#ffffff',
+          'text-secondary': '#b0b0c0',
+          'text-tertiary': '#8899bb',
+          'text-muted': '#6d7d9d',
+          error: '#ff6666',
+          'error-border': '#ff4444',
+          success: '#4EFFA0',
           warning: '#facc15',
-          info: '#60a5fa',
-          'module-vpc': '#2563eb',
-          'module-ecs': '#ea580c',
-          'module-rds': '#16a34a',
-          'module-alb': '#0891b2',
-          'module-monitoring': '#7c3aed',
-          'module-secondary': '#ec4899',
-          'module-tertiary': '#14b8a6'
+          info: '#60a5fa'
         }
       },
       borderRadius: {

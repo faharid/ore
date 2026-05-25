@@ -42,7 +42,8 @@ export const authApi = {
 
 export const workspaceApi = {
   list: () => api.get('/workspaces'),
-  create: (name) => api.post('/workspaces', { name })
+  create: (name) => api.post('/workspaces', { name }),
+  delete: (id) => api.delete(`/workspaces/${id}`)
 };
 
 export const environmentApi = {

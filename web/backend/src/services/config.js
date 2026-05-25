@@ -4,8 +4,11 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ENVIRONMENTS_DIR = process.env.ENVIRONMENTS_DIR || path.join(__dirname, '../../../terraform/environments');
-const TERRAFORM_DIR = process.env.TERRAFORM_DIR || path.join(__dirname, '../../../terraform');
+const ENVIRONMENTS_DIR =
+  process.env.ENVIRONMENTS_DIR ||
+  path.join(__dirname, '../../../../terraform/environments');
+const TERRAFORM_DIR =
+  process.env.TERRAFORM_DIR || path.join(__dirname, '../../../../terraform');
 
 function getEnvDir(workspace = 'default') {
   if (workspace && workspace !== 'default') {

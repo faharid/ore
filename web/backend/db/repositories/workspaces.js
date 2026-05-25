@@ -27,3 +27,11 @@ export async function getWorkspaceBySlug(slug) {
   const { rows } = await query('SELECT slug, name FROM workspaces WHERE slug = $1', [slug]);
   return rows[0] || null;
 }
+
+export async function deleteWorkspace(slug) {
+  await query('DELETE FROM cost_snapshots WHERE workspace_slug = $1', [slug]);
+  const { rowCount } = await query('DELETE FROM workspaces WHERE slug = $1', [slug]);
+  if (rowCount === 0) {
+    throw { status: 404, message: 'Workspace not found' };
+  }
+}

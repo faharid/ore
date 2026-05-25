@@ -2,26 +2,28 @@ import { useState, useEffect } from 'react';
 import {
   MODULES,
   MODULE_DEPENDENCIES,
-  MODULE_SIZE,
+  MODULE_CARD_WIDTH,
+  MODULE_CARD_HEIGHT,
   MODULE_LABEL_OFFSET
 } from '../../design/modules.js';
 
 const DEFAULT_POSITIONS = {
-  vpc: { x: 80, y: 80 },
-  ecs: { x: 280, y: 160 },
-  rds: { x: 280, y: 280 },
-  alb: { x: 80, y: 200 },
-  autoscaling: { x: 480, y: 160 },
-  monitoring: { x: 480, y: 280 },
-  secrets: { x: 80, y: 360 },
-  iam: { x: 280, y: 400 },
-  cloudfront: { x: 480, y: 80 },
-  budgets: { x: 680, y: 280 },
-  client_vpn: { x: 680, y: 160 },
-  ssm: { x: 680, y: 400 }
+  vpc: { x: 48, y: 48 },
+  alb: { x: 220, y: 48 },
+  ecs: { x: 392, y: 48 },
+  rds: { x: 564, y: 48 },
+  secrets: { x: 48, y: 200 },
+  monitoring: { x: 220, y: 200 },
+  iam: { x: 392, y: 200 },
+  autoscaling: { x: 564, y: 200 },
+  cloudfront: { x: 48, y: 352 },
+  budgets: { x: 220, y: 352 },
+  client_vpn: { x: 392, y: 352 },
+  ssm: { x: 564, y: 352 }
 };
 
-const CENTER = MODULE_SIZE / 2;
+const CENTER_X = MODULE_CARD_WIDTH / 2;
+const CENTER_Y = MODULE_CARD_HEIGHT / 2;
 
 export default function Canvas({ env, selectedNode, onNodeSelect, highlightModule }) {
   const [positions, setPositions] = useState(DEFAULT_POSITIONS);
@@ -49,7 +51,7 @@ export default function Canvas({ env, selectedNode, onNodeSelect, highlightModul
 
   const getModuleCenter = (moduleId) => {
     const pos = positions[moduleId] || DEFAULT_POSITIONS[moduleId];
-    return { x: pos.x + CENTER, y: pos.y + CENTER };
+    return { x: pos.x + CENTER_X, y: pos.y + CENTER_Y };
   };
 
   const renderDependencyLines = () => {
@@ -66,10 +68,10 @@ export default function Canvas({ env, selectedNode, onNodeSelect, highlightModul
             y1={from.y}
             x2={to.x}
             y2={to.y}
-            stroke="#9ca3af"
+            stroke="#4EFFA0"
             strokeWidth="1"
             strokeDasharray="4,4"
-            opacity="0.3"
+            opacity="0.2"
           />
         );
       });
@@ -89,8 +91,8 @@ export default function Canvas({ env, selectedNode, onNodeSelect, highlightModul
     setPositions((prev) => ({
       ...prev,
       [dragging]: {
-        x: Math.max(0, e.clientX - rect.left - CENTER),
-        y: Math.max(0, e.clientY - rect.top - CENTER)
+        x: Math.max(0, e.clientX - rect.left - CENTER_X),
+        y: Math.max(0, e.clientY - rect.top - CENTER_Y)
       }
     }));
   };
@@ -102,15 +104,27 @@ export default function Canvas({ env, selectedNode, onNodeSelect, highlightModul
       onMouseUp={() => setDragging(null)}
       onMouseLeave={() => setDragging(null)}
     >
-      <svg className="absolute inset-0 pointer-events-none" style={{ minWidth: 900, minHeight: 520 }}>
-        <pattern id="ore-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#374151" strokeWidth="0.5" />
-        </pattern>
-        <rect width="100%" height="100%" fill="url(#ore-grid)" opacity="0.4" />
+      <svg
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        preserveAspectRatio="none"
+        style={{ minWidth: 900, minHeight: 520 }}
+      >
+        <defs>
+          <pattern id="ore-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#4EFFA0" strokeWidth="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ore-grid)" />
+      </svg>
+
+      <svg
+        className="absolute inset-0 pointer-events-none"
+        style={{ minWidth: 900, minHeight: 520 }}
+      >
         {renderDependencyLines()}
       </svg>
 
-      <div className="absolute inset-0" style={{ minWidth: 900, minHeight: 520 }}>
+      <div className="relative z-10" style={{ minWidth: 900, minHeight: 520 }}>
         {MODULES.map((module) => {
           const pos = positions[module.id] || DEFAULT_POSITIONS[module.id];
           const isSelected = selectedNode === module.id;
@@ -123,28 +137,27 @@ export default function Canvas({ env, selectedNode, onNodeSelect, highlightModul
               style={{
                 left: pos.x,
                 top: pos.y,
-                width: MODULE_SIZE,
+                width: MODULE_CARD_WIDTH,
                 paddingBottom: MODULE_LABEL_OFFSET
               }}
               onMouseDown={(e) => handleMouseDown(module.id, e)}
             >
               <div
-                className={`ds-module ${module.dsClass} ${
-                  isSelected ? 'ds-module-selected' : ''
-                } ${isHighlighted ? 'ds-module-highlighted' : ''}`}
+                className={`ds-module-card ${
+                  isSelected ? 'ds-module-card-selected' : ''
+                } ${isHighlighted ? 'ds-module-card-highlighted' : ''}`}
               >
-                <span className="ds-module-icon" aria-hidden>
-                  {module.icon}
-                </span>
-                <span className="ds-module-label">{module.label}</span>
+                <i className={`ti ${module.icon} ds-module-icon`} aria-hidden />
+                <p className="ds-module-title">{module.label}</p>
+                <p className="ds-module-subtitle">{module.subtitle}</p>
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="absolute bottom-4 left-4 ds-card z-20 max-w-sm p-3 text-ore-label text-ore-text-secondary">
-        Drag to rearrange. Dashed lines show dependencies. Click to configure.
+      <div className="absolute bottom-4 left-6 z-20 text-[11px] text-ore-text-muted">
+        Click to configure. Drag to rearrange.
       </div>
     </div>
   );
